@@ -85,7 +85,22 @@
       border-radius:8px;
       text-decoration:none;
       -webkit-tap-highlight-color:transparent;
+      touch-action:manipulation;
     }
+    /* 누른 항목만 짧게 파란색으로 피드백 표시 */
+    .hotspot::after {
+      content:"";
+      position:absolute;
+      inset:-2px;
+      border-radius:inherit;
+      pointer-events:none;
+      opacity:0;
+      background:rgba(20,145,255,.30);
+      box-shadow:0 0 0 1px rgba(70,180,255,.55), 0 0 10px rgba(20,145,255,.28);
+      transition:opacity .10s ease;
+    }
+    .hotspot:active::after,
+    .hotspot.is-tapped::after { opacity:1; }
     .hotspot:focus-visible {
       outline:3px solid rgba(255,255,255,.95);
       outline-offset:2px;
@@ -174,7 +189,27 @@
       });
 
       card.querySelectorAll('a').forEach((link) => {
-        link.addEventListener('click', (event) => event.stopPropagation());
+        let releaseTimer;
+
+        const showTap = () => {
+          clearTimeout(releaseTimer);
+          link.classList.add('is-tapped');
+        };
+        const hideTap = () => {
+          clearTimeout(releaseTimer);
+          releaseTimer = setTimeout(() => link.classList.remove('is-tapped'), 260);
+        };
+
+        link.addEventListener('pointerdown', showTap);
+        link.addEventListener('pointerup', hideTap);
+        link.addEventListener('pointercancel', hideTap);
+        link.addEventListener('pointerleave', hideTap);
+        link.addEventListener('blur', () => link.classList.remove('is-tapped'));
+        link.addEventListener('click', (event) => {
+          event.stopPropagation();
+          showTap();
+          hideTap();
+        });
       });
     })();
   </script>
